@@ -1,38 +1,57 @@
-Role Name
+hugo-s3-deploy
 =========
 
-A brief description of the role goes here.
+This Ansible role will generate all static artifacts using [Hugo](https://gohugo.io) and sync with an Amazon S3 bucket.
 
 Requirements
 ------------
+You'll need the following stuff to get started:
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+* ansible >= 2.1.x
+* aws-cli >= 1.11.x
+* hugo >= 0.17
+* [Amazon AWS account](https://aws.amazon.com/free)
 
-Role Variables
---------------
+**Note:** before you run `ansible-playbook`, make sure `boto` has access to your AWS profile (~ for example by exporting the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables).
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
-
-Dependencies
+TL;DR
 ------------
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+See [this](https://www.foobar-it.com/2016/09/03/hello-hugo/) blog post.
 
-Example Playbook
-----------------
+Use a playbook like this:
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+```sh
+---
+  - name: Deploy Hugo to Amazon AWS
+    hosts: localhost
+    gather_facts: true
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+    vars:
+      website_domain: foobar-it.com
+      verbose_output: true
+
+    roles:
+      - role: hugo-s3-deploy
+        hugo_base_path: ../www
+        s3_website_domain: "{{ website_domain }}"
+        verbose: "{{ verbose_output }}"
+        tags:
+          - deploy
+```
+
+Run:
+
+```sh
+$ ansible-playbook -i localhost site.yml
+```
+
+Where: `site.yml` contains the contents I pasted above.
+
+As a result, all static artifacts are generated and synched to the Amazon S3 bucket. I used a naming convention that translates `s3_website_domain` to a S3 bucketname. In this case: `foobar-it.com` leads to `www-foobar-it-com`.
+
 
 License
 -------
 
 BSD
-
-Author Information
-------------------
-
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
