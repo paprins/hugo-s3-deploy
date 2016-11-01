@@ -1,0 +1,8 @@
+---
+  verbose: false
+
+  required_variables:
+    - s3_website_domain
+
+  s3_website_bucket_name: "www-{{ s3_website_domain | replace('.','-') }}"
+  s3_website_region: eu-west-1

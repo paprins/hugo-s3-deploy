@@ -1,0 +1,34 @@
+---
+  - fail:
+      msg: "No value specified for '{{ item }}'"
+    when: ({{ item }} is undefined) or ({{ item|trim == '' }})
+    with_items: required_variables
+
+  - set_fact:
+      hugo_work_dir: "{{ lookup('pipe', 'readlink -m {{ hugo_base_path }}') }}"
+      hugo_base_url: "{{ s3_website_domain.startswith('www.') | ternary(s3_website_domain,'www.' + s3_website_domain) }}"
+
+  - command: which hugo
+    ignore_errors: true
+    register: _out
+
+  - set_fact:
+      hugo_is_installed: "{{ _out.rc==0 }}"
+
+  - fail:
+      msg: "Hugo not found. Type: `brew update && brew install hugo`"
+    when: not hugo_is_installed
+
+  - name: Generate Hugo site
+    command: "hugo --ignoreCache --baseURL https://{{ hugo_base_url }} -s {{ hugo_work_dir }}"
+    register: _out
+
+  - debug: var=_out.stdout_lines
+    when: verbose
+
+  - name: Sync site to S3
+    command: "aws s3 sync --acl 'public-read' --sse 'AES256' --delete {{ hugo_work_dir }}/public s3://{{ s3_website_bucket_name }} --region {{ s3_website_region }}"
+    register: _out
+
+  - debug: var=_out.stdout_lines
+    when: verbose
