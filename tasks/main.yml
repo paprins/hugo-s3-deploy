@@ -5,7 +5,7 @@
     with_items: required_variables
 
   - set_fact:
-      hugo_work_dir: "{{ lookup('pipe', 'readlink -m {{ hugo_base_path }}') }}"
+      hugo_work_dir: "{{ lookup('pipe', 'cd {{ hugo_base_path }}; pwd') }}"
       hugo_base_url: "{{ s3_website_domain.startswith('www.') | ternary(s3_website_domain,'www.' + s3_website_domain) }}"
 
   - command: which hugo
